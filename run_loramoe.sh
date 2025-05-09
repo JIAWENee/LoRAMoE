@@ -1,6 +1,7 @@
 export CUDA_HOME=/usr/local/cuda-11.8
 export LD_LIBRARY_PATH=${CUDA_HOME}/lib64
 export PATH=${CUDA_HOME}/bin:${PATH}
+export CUDA_VISIBLE_DEVICES=0
 
 # export NCCL_NET=IB
 # export NCCL_IB_HCA=mlx5_0
@@ -16,25 +17,25 @@ blc_alpha=0.0
 blc_weight=0.0
 
 
-pretrained_model=/public/LoRAMoE/llama2-7b
-tokenizer_path=/public/LoRAMoE/llama2-7b
-dataset_dir=/public/LoRAMoE/data/tiny_data/train
-validation_file=/public/LoRAMoE/data/tiny_data/test.json
+pretrained_model=/home/LoRAMoE/pre_trained_model/Llama-2-13b-hf
+tokenizer_path=/home/LoRAMoE/pre_trained_model/Llama-2-13b-hf
+dataset_dir=/home/LoRAMoE/data/tiny_data/train
+validation_file=/home/LoRAMoE/data/tiny_data/test.json
 
 per_device_train_batch_size=1
 per_device_eval_batch_size=1
 gradient_accumulation_steps=1
 max_seq_length=1024
-output_dir=/public/LoRAMoE/output
-exp_name=0308_debug_format_for_opensource
+output_dir=/home/LoRAMoE/output
+exp_name=$(date +"%Y%m%d_%H%M")
 
 
 # deepspeed_config_file=ds_zero2_no_offload.json
 deepspeed_config_file=ds_zero3_offload.json
 
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 \
+CUDA_VISIBLE_DEVICES=0 \
 CUDA_LAUNCH_BLOCKING=1 \
-torchrun --nnodes 1 --nproc_per_node 8 --node_rank 0 --master_port 29502 \
+torchrun --nnodes 1 --nproc_per_node 1 --node_rank 0 --master_port 29502 \
     run_loramoe.py \
     --deepspeed ${deepspeed_config_file} \
     --model_name_or_path ${pretrained_model} \
@@ -77,4 +78,4 @@ torchrun --nnodes 1 --nproc_per_node 8 --node_rank 0 --master_port 29502 \
     --ddp_find_unused_parameters False \
     --flash_attn \
     --overwrite_output_dir \
-    &> /public/LoRAMoE/output/log/${exp_name}.log
+    &> /home/LoRAMoE/output/log/${exp_name}.log
